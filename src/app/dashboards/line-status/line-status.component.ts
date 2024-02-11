@@ -22,11 +22,14 @@ export class LineStatusComponent implements OnInit {
   public image: HTMLImageElement;
   private map: L.Map;
 
+  private robotSvg;
+
 
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     this.initMap();
+
   }
 
   private async initMap() {
@@ -64,7 +67,24 @@ export class LineStatusComponent implements OnInit {
     this.map.fitBounds(imageBounds);
 
 
-    const c = L.circle([600, 300], {radius: 50}).addTo(this.map);
+    const c = L.circle([600, 300], {radius: 50});
+    const d = L.circle([800, 500], {radius: 50});
+
+    const cGroup = L.layerGroup([c, d]);
+
+    const r1 = L.rectangle([[100, 100], [200, 200]]);
+    const r2 = L.rectangle([[400, 900], [450, 950]]);
+
+    const rGroup = L.layerGroup([r1, r2]);
+
+    const overlayMaps = {
+      'Circles': cGroup,
+      'Rectangles': rGroup
+    };
+    const controls = L.control.layers(null, overlayMaps);
+
+    controls.addTo(this.map);
+
     c.addEventListener('click', (e) => {
       console.log('click', e);
     });
