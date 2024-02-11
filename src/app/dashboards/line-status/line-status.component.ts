@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
-import * as L from 'leaflet';
+import { circle, CRS, imageOverlay, latLng, LatLng, map, MapOptions, marker, polygon, tileLayer } from 'leaflet';
 import { LatLngBoundsExpression } from 'leaflet';
 
 
@@ -12,21 +13,69 @@ import { LatLngBoundsExpression } from 'leaflet';
   standalone: true,
   imports: [
     CommonModule,
-    HttpClientModule
+    HttpClientModule,
+    LeafletModule
   ],
   templateUrl: './line-status.component.html',
   styleUrl: './line-status.component.scss',
 })
 export class LineStatusComponent implements OnInit {
 
+  loaded = false;
+
   public image: HTMLImageElement;
+
+  options: MapOptions = {
+    minZoom: -1,
+    maxZoom: 2,
+    zoom: 0,
+    // zoomDelta: 1,
+    inertia: true,
+    inertiaDeceleration: 0,
+    inertiaMaxSpeed: 0,
+    zoomSnap: 0,
+    boxZoom: true,
+    wheelDebounceTime: 0,
+    wheelPxPerZoomLevel: 1,
+    doubleClickZoom: false,
+    crs: CRS.Simple,
+    attributionControl: false,
+  };
+
+  baseLayers = {};
+
+  layersControl = {
+
+    overlays: {
+      'Big Circle': circle([ 46.95, -122 ], { radius: 5000 }),
+      'Big Square': polygon([[ 46.8, -121.55 ], [ 46.9, -121.55 ], [ 46.9, -121.7 ], [ 46.8, -121.7 ]])
+    }
+  }
+
+
   private map: L.Map;
+
+
 
 
   constructor(private http: HttpClient) { }
 
-  ngOnInit(): void {
-    this.initMap();
+  async ngOnInit() {
+    // this.initMap();
+    const imageUrl = '/assets/plano.png';
+    this.image = await this.loadImage(imageUrl);
+    const aspectRatio = this.image.width / this.image.height;
+    const imageBounds: LatLngBoundsExpression = [[0, 0], [1000, 1000*aspectRatio]];
+
+
+    this.options.maxBounds = imageBounds;
+    this.options.zoom = 0;
+    this.options.center = latLng(500, 500*aspectRatio);
+
+     // put image on map
+     this.baseLayers['Plano'] = imageOverlay(this.image.src, imageBounds);
+
+      this.loaded = true;
   }
 
   private async initMap() {
@@ -41,7 +90,7 @@ export class LineStatusComponent implements OnInit {
     const imageBounds: LatLngBoundsExpression = [[0, 0], [1000, 1000*aspectRatio]];
     const imageBounds2: LatLngBoundsExpression = [[0, 0], [1000, 1000*aspectRatio]];
 
-    this.map = L.map('map', {
+    this.map = map('map', {
       minZoom: -1,
       maxZoom: 2,
       zoom: 0,
@@ -55,16 +104,16 @@ export class LineStatusComponent implements OnInit {
       wheelDebounceTime: 0,
       wheelPxPerZoomLevel: 1,
       doubleClickZoom: false,
-      crs: L.CRS.Simple,
+      crs: CRS.Simple,
       attributionControl: false,
     });
 
 
-    L.imageOverlay(this.image.src, imageBounds).addTo(this.map);
+    imageOverlay(this.image.src, imageBounds).addTo(this.map);
     this.map.fitBounds(imageBounds);
 
 
-    const c = L.circle([600, 300], {radius: 50}).addTo(this.map);
+    const c = circle([600, 300], {radius: 50}).addTo(this.map);
     c.addEventListener('click', (e) => {
       console.log('click', e);
     });
@@ -79,7 +128,7 @@ export class LineStatusComponent implements OnInit {
 
 
 
-    L.marker([500, 1000]).addTo(this.map);
+    marker([500, 1000]).addTo(this.map);
   }
 
   private loadImage(src: string): Promise<HTMLImageElement> {
