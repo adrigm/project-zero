@@ -33,19 +33,21 @@ export class LineStatusComponent implements OnInit {
   }
 
   private async initMap() {
-    const imageUrl = '/assets/plano.png';
+    const imageUrl = '/assets/TeslaLUD.png';
 
     this.image = await this.loadImage(imageUrl);
     console.log('img', this.image.width, this.image.height);
 
     const aspectRatio = this.image.width / this.image.height;
 
+    console.log(aspectRatio*1000);
+
 
     const imageBounds: LatLngBoundsExpression = [[0, 0], [1000, 1000*aspectRatio]];
     const imageBounds2: LatLngBoundsExpression = [[0, 0], [1000, 1000*aspectRatio]];
 
     this.map = L.map('map', {
-      minZoom: -1,
+      minZoom: -2,
       maxZoom: 2,
       zoom: 0,
       // zoomDelta: 1,
@@ -67,8 +69,8 @@ export class LineStatusComponent implements OnInit {
     this.map.fitBounds(imageBounds);
 
 
-    const c = L.circle([600, 300], {radius: 50});
-    const d = L.circle([800, 500], {radius: 50});
+    const c = L.circle([600, 2200], {radius: 50});
+    const d = L.circle([800, 3000], {radius: 50});
 
     const cGroup = L.layerGroup([c, d]);
 
